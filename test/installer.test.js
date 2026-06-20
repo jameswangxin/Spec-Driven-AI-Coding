@@ -85,13 +85,13 @@ test('skillsOnly installs skills without creating a workflow directory', async (
   });
 });
 
-test('initOnly installs the workflow without creating the skills directory', async () => {
+test('initOnly installs the workflow without installing managed skills', async () => {
   await withTarget(async (target) => {
     const result = await install(target, { initOnly: true });
 
     assert.equal(result.workflowInstalled, true);
     assert.equal(await exists(join(target, '.workflow', 'project.md')), true);
-    assert.equal(await exists(join(target, '.agents', 'skills')), false);
+    assert.equal(await hasWorkflowSkill(target), false);
   });
 });
 
@@ -106,17 +106,19 @@ test('inspect does not write and reports missing managed files', async () => {
 
 test('uninstall removes managed workflow contents but preserves custom skills and business files', async () => {
   await withTarget(async (target) => {
-    const customSkill = join(target, '.agents', 'skills', 'custom', 'SKILL.md');
+    const customSkill = join(target, '.codex', 'skills', 'custom', 'SKILL.md');
     const businessFile = join(target, 'README.md');
-    await mkdir(join(target, '.agents', 'skills', 'custom'), { recursive: true });
+    await mkdir(join(target, '.codex', 'skills', 'custom'), { recursive: true });
     await writeFile(customSkill, '# Custom skill\n');
     await writeFile(businessFile, '# Business project\n');
     await install(target);
+    assert.equal(await hasWorkflowSkill(target), true);
 
     const result = await uninstall(target);
 
     assert.equal(result.workflowUninstalled, true);
     assert.equal(await exists(join(target, '.workflow', 'project.md')), false);
+    assert.equal(await hasWorkflowSkill(target), false);
     assert.equal(await readFile(customSkill, 'utf8'), '# Custom skill\n');
     assert.equal(await readFile(businessFile, 'utf8'), '# Business project\n');
   });
