@@ -5,11 +5,33 @@ description: Use when a planned .workflow requirement has approved implementatio
 
 # Execute a workflow requirement
 
-Before code changes, read `.workflow/project.md`, `.workflow/playbook.md`, `.workflow/current.md`, `.workflow/index.md`, the `REQ-*`, its plan or documented skip, related `CAP-*`, and `.workflow/git.md`. Confirm explicit implementation authority; if absent, ask and pause.
+## Execution contract
 
-1. Make only the smallest changes within the accepted requirement and plan. Do not alter unrelated configuration or workflow history.
-2. If a material design or scope deviation appears, record it and obtain renewed confirmation before continuing.
-3. Run the relevant validation commands. Record the actual commands, results, key evidence, non-runs, substitute validation, and residual risks in `.workflow/implementations/REQ-xxxx-implementation.md` using the template.
-4. Update links/pointers and transition `planned -> implemented` with a dated history entry. Update `.workflow/index.md`.
+You MUST enforce this contract using tools, not just reasoning. Stop and ask the user if any required step fails.
+
+1. **Load context**
+   - Read `.workflow/project.md`, `.workflow/playbook.md`, `.workflow/current.md`, `.workflow/index.md`.
+   - Read the target `REQ-*` file.
+   - If a plan exists, read `.workflow/plans/REQ-xxxx-plan.md`.
+   - If an implementation record exists, read `.workflow/implementations/REQ-xxxx-implementation.md`.
+   - Read any referenced `CAP-*` files.
+
+2. **Assert preconditions**
+   - Before making any changes, run:
+     `workflow-template --assert-status REQ-xxxx --status planned`
+   - If `workflow-template` is not installed, use `npx workflow-template` or `node ./node_modules/.bin/workflow-template`.
+   - If the assertion fails, stop and route the requirement to `workflow-plan` or `workflow-check` as appropriate.
+
+3. **Perform work**
+   - Make only the smallest changes within the accepted requirement and plan.
+   - If a material design or scope deviation appears, record it and obtain renewed confirmation before continuing.
+   - Run relevant validation commands for the code changes.
+
+4. **Validate and sync**
+   - After modifying any `.workflow/` file, run `workflow-template --validate`.
+   - If validation fails, fix the records before transitioning status.
+   - Update `.workflow/implementations/REQ-xxxx-implementation.md` using the template.
+   - Transition `planned -> implemented` with a dated history entry, update `updated_at`, and run `workflow-template --sync-index`.
+   - Update `.workflow/current.md` or the active pointer if needed.
 
 Implementation is not verification: do not set `verified` without the separate check step.

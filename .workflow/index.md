@@ -16,6 +16,7 @@ This directory is the source of truth for requirements, plans, implementation re
 <!-- workflow:active-work:start -->
 | ID | Title | Status | Plan | Implementation | Capabilities |
 | --- | --- | --- | --- | --- | --- |
+| REQ-0001 | Skills 仅依赖 Markdown 提示，缺少可执行约束 | verified | yes | yes | — |
 <!-- workflow:active-work:end -->
 
 ## Requirement Status Flow
