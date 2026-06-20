@@ -2,7 +2,7 @@
 import { parseArgs } from 'node:util';
 
 import { inspect, install, uninstall } from '../lib/installer.js';
-import { syncCurrent, syncIndex, validateWorkflow } from '../lib/validator.js';
+import { assertStatus, syncCurrent, syncIndex, validateWorkflow } from '../lib/validator.js';
 
 const HELP = `Usage: workflow-template [options]
 
@@ -15,6 +15,8 @@ Install and operate the workflow template in the current directory.
   --validate             Validate workflow records and references
   --sync-index           Rebuild managed index tables from workflow records
   --sync-current [id]    Synchronize current context; optionally select REQ-xxxx
+  --assert-status [id]   Assert a requirement is in an allowed status
+  --status <status>      Allowed status for --assert-status (repeatable)
   --format <format>      Output human or json (default: human)
   --uninstall --yes      Remove managed files
   --help                 Show this help`;
@@ -25,6 +27,10 @@ function parse(argv) {
     normalizedArgs.push(argv[index]);
     if (argv[index] === '--sync-current' && argv[index + 1] && !argv[index + 1].startsWith('--')) {
       normalizedArgs.push(`--sync-current-id=${argv[index + 1]}`);
+      index += 1;
+    }
+    if (argv[index] === '--assert-status' && argv[index + 1] && !argv[index + 1].startsWith('--')) {
+      normalizedArgs.push(`--assert-status-id=${argv[index + 1]}`);
       index += 1;
     }
   }
@@ -40,6 +46,9 @@ function parse(argv) {
       'sync-index': { type: 'boolean' },
       'sync-current': { type: 'boolean' },
       'sync-current-id': { type: 'string' },
+      'assert-status': { type: 'boolean' },
+      'assert-status-id': { type: 'string' },
+      status: { type: 'string', multiple: true },
       uninstall: { type: 'boolean' },
       yes: { type: 'boolean' },
       'with-claude-md': { type: 'boolean' },
@@ -50,7 +59,7 @@ function parse(argv) {
   if (positionals.length > 0) throw new Error(`Unexpected argument: ${positionals[0]}`);
   if (!['codex', 'claude', 'all'].includes(values.target)) throw new Error('--target must be codex, claude, or all');
   if (!['human', 'json'].includes(values.format)) throw new Error('--format must be human or json');
-  const commands = ['check', 'validate', 'sync-index', 'sync-current', 'uninstall'].filter((key) => values[key] !== undefined && values[key] !== false);
+  const commands = ['check', 'validate', 'sync-index', 'sync-current', 'assert-status', 'uninstall'].filter((key) => values[key] !== undefined && values[key] !== false);
   if (commands.length > 1) throw new Error('Only one operation command may be used at a time');
   if (commands.length > 0 && (values['skills-only'] || values['init-only'])) throw new Error('Operation commands cannot be combined with install mode options');
   return { ...values, command: commands[0] };
@@ -77,6 +86,11 @@ try {
   } else if (options.command === 'sync-current') {
     await syncCurrent(`${process.cwd()}/.workflow`, options['sync-current-id']);
     print('Workflow current context synchronized.', options.format);
+  } else if (options.command === 'assert-status') {
+    if (!options['assert-status-id']) throw new Error('--assert-status requires a REQ-xxxx argument');
+    if (!options.status || options.status.length === 0) throw new Error('--assert-status requires at least one --status');
+    await assertStatus(`${process.cwd()}/.workflow`, options['assert-status-id'], options.status);
+    print(`Requirement ${options['assert-status-id']} status is allowed.`, options.format);
   } else if (options.command === 'check') {
     const report = await inspect({ target: process.cwd(), targetPlatform: options.target });
     print(report, 'json');

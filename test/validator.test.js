@@ -656,3 +656,81 @@ for (const status of [
     );
   });
 }
+
+
+import { cp } from "node:fs/promises";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+
+const execAsync = promisify(exec);
+
+async function projectFixture(options = {}) {
+  const workflowRoot = await fixture(options);
+  const projectRoot = await mkdtemp(join(tmpdir(), "workflow-project-"));
+  await cp(workflowRoot, join(projectRoot, ".workflow"), { recursive: true });
+  return projectRoot;
+}
+
+async function runCli(args, cwd = process.cwd()) {
+  const { stdout, stderr } = await execAsync(`node ${new URL("../bin/workflow.js", import.meta.url).pathname} ${args}`, { cwd });
+  return { stdout, stderr, exitCode: 0 };
+}
+
+async function runCliExpectFailure(args, cwd = process.cwd()) {
+  try {
+    await execAsync(`node ${new URL("../bin/workflow.js", import.meta.url).pathname} ${args}`, { cwd });
+    return { stdout: "", stderr: "", exitCode: 0 };
+  } catch (error) {
+    return { stdout: error.stdout ?? "", stderr: error.stderr ?? "", exitCode: error.code ?? 1 };
+  }
+}
+
+test("CLI --assert-status passes when status is allowed", async () => {
+  const projectRoot = await projectFixture();
+  const { stdout, exitCode } = await runCli(`--assert-status REQ-0001 --status accepted --status planned`, projectRoot);
+  assert.equal(exitCode, 0);
+  assert.match(stdout, /Requirement REQ-0001 status is allowed/);
+});
+
+test("CLI --assert-status fails when status is not allowed", async () => {
+  const projectRoot = await projectFixture();
+  const { stderr, exitCode } = await runCliExpectFailure(`--assert-status REQ-0001 --status planned`, projectRoot);
+  assert.equal(exitCode, 1);
+  assert.match(stderr, /which is not allowed/);
+});
+
+test("CLI --assert-status fails when requirement is missing", async () => {
+  const projectRoot = await projectFixture();
+  const { stderr, exitCode } = await runCliExpectFailure(`--assert-status REQ-9999 --status accepted`, projectRoot);
+  assert.equal(exitCode, 1);
+  assert.match(stderr, /does not exist/);
+});
+
+test("CLI --assert-status requires at least one --status", async () => {
+  const projectRoot = await projectFixture();
+  const { stderr, exitCode } = await runCliExpectFailure(`--assert-status REQ-0001`, projectRoot);
+  assert.equal(exitCode, 1);
+  assert.match(stderr, /requires at least one --status/);
+});
+
+const SKILL_CONTRACTS = [
+  { name: "workflow-new", asserts: false },
+  { name: "workflow-confirm", asserts: true },
+  { name: "workflow-plan", asserts: true },
+  { name: "workflow-exec", asserts: true },
+  { name: "workflow-check", asserts: true },
+  { name: "workflow-archive", asserts: true },
+];
+
+for (const { name, asserts } of SKILL_CONTRACTS) {
+  test(`Skill ${name} includes execution contract with --validate${asserts ? " and --assert-status" : ""}`, async () => {
+    const path = new URL(`../skills/${name}/SKILL.md`, import.meta.url);
+    const content = await readFile(path, "utf8");
+    assert.match(content, /--validate/);
+    assert.match(content, /Execution contract/);
+    assert.match(content, /MUST enforce this contract/);
+    if (asserts) {
+      assert.match(content, /--assert-status/);
+    }
+  });
+}

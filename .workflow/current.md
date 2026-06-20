@@ -5,7 +5,11 @@
 本文件是默认入口，适合单需求工作或当前主线工作。多个需求并行时，不要反复覆盖本文件，应使用 `.workflow/active/REQ-xxxx.md`。
 
 <!-- workflow:current:start -->
-当前没有活动需求。
+当前需求：[REQ-0001](requirements/REQ-0001.md)
+
+[Plan](plans/REQ-0001-plan.md)
+
+[Implementation](implementations/REQ-0001-implementation.md)
 <!-- workflow:current:end -->
 
 并行工作时，创建：
