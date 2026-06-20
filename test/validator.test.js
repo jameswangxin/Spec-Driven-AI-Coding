@@ -168,6 +168,17 @@ test("accepts a valid workflow", async () => {
   assert.equal(result.capabilities.length, 1);
 });
 
+test("accepts standard YAML features such as multiline strings, anchors, and nested objects", async () => {
+  const req = requirement()
+    .replace("title: Example requirement", "title: |\n  Multi\n  line title")
+    .replace("created_at: 2026-01-01", "created_at: &date 2026-01-01")
+    .replace("date: 2026-01-01", "date: *date")
+    .replace("note: Created", 'note: Created with "quotes"')
+    .replace("references: []", "references: []\nmetadata:\n  nested:\n    key: value");
+  const result = await validateWorkflow(await fixture({ req }));
+  assert.equal(result.valid, true);
+});
+
 test("rejects an illegal draft to planned transition", async () => {
   const req = requirement()
     .replace("status: accepted", "status: planned")
