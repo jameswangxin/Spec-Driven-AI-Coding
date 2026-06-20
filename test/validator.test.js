@@ -232,3 +232,15 @@ test('syncCurrent writes explicit and automatically selected context, no-active 
   await writeFile(join(ambiguous, 'requirements', 'REQ-0002.md'), requirement().replaceAll('REQ-0001', 'REQ-0002').replace('Example requirement', 'Another requirement'));
   await assert.rejects(syncCurrent(ambiguous), (error) => error.code === 'WF_CURRENT_AMBIGUOUS');
 });
+
+for (const status of ['draft', 'planned', 'implemented', 'blocked', 'reopened']) {
+  test(`syncCurrent automatically selects a ${status} requirement`, async () => {
+    const root = await syncFixture({
+      req: requirement().replace('status: accepted', `status: ${status}`).replace('to: accepted', `to: ${status}`),
+    });
+
+    await syncCurrent(root);
+
+    assert.match(await readFile(join(root, 'current.md'), 'utf8'), /\[REQ-0001\]\(requirements\/REQ-0001\.md\)/);
+  });
+}
