@@ -231,3 +231,18 @@ test('CLI supports install modes, check, uninstall confirmation, and help', asyn
     await assert.rejects(execFile(process.execPath, [CLI, '--check'], { cwd: target }), { code: 1 });
   });
 });
+
+test('CLI validates and synchronizes an installed workflow', async () => {
+  await withTarget(async (target) => {
+    await execFile(process.execPath, [CLI, '--init-only'], { cwd: target });
+
+    const validation = await execFile(process.execPath, [CLI, '--validate'], { cwd: target });
+    assert.match(validation.stdout, /Workflow validation passed/);
+
+    await execFile(process.execPath, [CLI, '--sync-index'], { cwd: target });
+    await execFile(process.execPath, [CLI, '--sync-current'], { cwd: target });
+
+    assert.match(await readFile(join(target, '.workflow', 'index.md'), 'utf8'), /workflow:active-work:start/);
+    assert.match(await readFile(join(target, '.workflow', 'current.md'), 'utf8'), /当前没有活动需求/);
+  });
+});
