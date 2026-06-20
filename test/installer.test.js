@@ -97,9 +97,15 @@ test('initOnly installs the workflow without installing managed skills', async (
 
 test('inspect does not write and reports missing managed files', async () => {
   await withTarget(async (target) => {
+    const entriesBefore = await readdir(target);
+    assert.equal(await exists(join(target, '.workflow', 'project.md')), false);
+    assert.equal(await hasWorkflowSkill(target), false);
+
     const report = await inspect(target);
 
     assert.equal(await exists(join(target, '.workflow', 'project.md')), false);
+    assert.equal(await hasWorkflowSkill(target), false);
+    assert.deepEqual(await readdir(target), entriesBefore);
     assert.ok(report.missing.includes('.workflow/project.md'));
   });
 });
