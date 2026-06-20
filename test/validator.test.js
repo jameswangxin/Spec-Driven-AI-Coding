@@ -89,6 +89,12 @@ test('rejects invalid optional requirement field types', async () => {
   assert.ok(codes(result).includes('WF_REQ_SCHEMA_INVALID'));
 });
 
+test('rejects numeric reviewer and approver items', async () => {
+  const req = requirement().replace('plan_reason: No implementation plan needed', 'plan_reason: No implementation plan needed\nreviewers: [42]\napprovers:\n  - 7');
+  const result = await validateWorkflow(await fixture({ req }));
+  assert.ok(codes(result).includes('WF_REQ_SCHEMA_INVALID'));
+});
+
 test('rejects extra keys in a history entry', async () => {
   const req = requirement().replace('    note: Created', '    note: Created\n    unexpected: value');
   const result = await validateWorkflow(await fixture({ req }));
