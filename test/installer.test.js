@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -26,12 +26,28 @@ async function exists(path) {
   }
 }
 
+async function hasWorkflowSkill(target) {
+  const skillsDirectory = join(target, '.codex', 'skills');
+
+  try {
+    const entries = await readdir(skillsDirectory, { withFileTypes: true });
+    return (await Promise.all(entries
+      .filter((entry) => entry.isDirectory() && entry.name.startsWith('workflow-'))
+      .map((entry) => exists(join(skillsDirectory, entry.name, 'SKILL.md')))))
+      .some(Boolean);
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
 test('full install creates the project workflow file and reports workflowInstalled', async () => {
   await withTarget(async (target) => {
     const result = await install(target);
 
     assert.equal(result.workflowInstalled, true);
     assert.equal(await exists(join(target, '.workflow', 'project.md')), true);
+    assert.equal(await hasWorkflowSkill(target), true);
   });
 });
 
@@ -65,6 +81,7 @@ test('skillsOnly installs skills without creating a workflow directory', async (
 
     assert.equal(result.workflowInstalled, false);
     assert.equal(await exists(join(target, '.workflow', 'project.md')), false);
+    assert.equal(await hasWorkflowSkill(target), true);
   });
 });
 
