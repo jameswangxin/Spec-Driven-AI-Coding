@@ -13,7 +13,7 @@
 
 ## Commits / PRs
 
-- commit: pending final verification commit
+- commit: 1796747 docs: verify initial workflow protocol
 - PR: not applicable
 
 ## Tests
