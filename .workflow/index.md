@@ -6,6 +6,8 @@ This directory is the source of truth for requirements, plans, implementation re
 
 ## Active Work
 
+The linked requirement, plan, implementation record, and capability files are created by later REQ-0001 setup tasks.
+
 | ID | Title | Status | Plan | Implementation | Capabilities |
 | --- | --- | --- | --- | --- | --- |
 | REQ-0001 | Establish project-local workflow protocol | planned | [plan](plans/REQ-0001-plan.md) | [implementation](implementations/REQ-0001-implementation.md) | [CAP-0001](capabilities/CAP-0001.md) |

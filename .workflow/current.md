@@ -2,6 +2,8 @@
 
 ## Current Requirement
 
+This file describes the full REQ-0001 setup scope. Some linked context files are created by later setup tasks before final verification.
+
 - Requirement: [REQ-0001](requirements/REQ-0001.md)
 - Plan: [REQ-0001 plan](plans/REQ-0001-plan.md)
 - Implementation record: [REQ-0001 implementation](implementations/REQ-0001-implementation.md)
@@ -37,3 +39,4 @@
 - Confirm every referenced `REQ-*` and `CAP-*` file exists.
 - Confirm templates contain the required sections from the approved design spec.
 - Run repository status checks before commit.
+- Before final verification, confirm every linked setup file has been created.
