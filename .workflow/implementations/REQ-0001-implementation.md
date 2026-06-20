@@ -13,8 +13,8 @@
 
 ## Commits / PRs
 
-- implementation commits: e305168..1796747
-- verification record updates: a9f1720, e3f6ce6
+- implementation commits: e305168 through 1796747 inclusive
+- record update anchors: a9f1720, e3f6ce6
 - note: commits that only update this record may appear after the commits listed here; use `git log --oneline` for the exact repository HEAD.
 - PR: not applicable
 
