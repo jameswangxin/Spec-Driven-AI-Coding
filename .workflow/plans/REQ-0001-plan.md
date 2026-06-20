@@ -17,6 +17,7 @@ Create the initial `.workflow/` file protocol for stable Agent context, traceabl
 - Add `REQ-0001`, its plan, implementation record, and `CAP-0001`.
 - Add templates for requirement, plan, implementation, and capability files.
 - Add `.gitignore` for local macOS metadata.
+  - This keeps local macOS metadata out of the workflow repository while the protocol is being established.
 
 ## Design Decisions
 
