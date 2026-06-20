@@ -25,6 +25,7 @@
 - Building a CLI.
 - Automating state transitions.
 - Integrating GitHub issues, pull requests, or CI.
+- Multi-user review and approval workflows.
 
 ## Known Risks
 
