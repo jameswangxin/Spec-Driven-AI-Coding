@@ -82,3 +82,15 @@ test('rejects history whose final status differs from current status', async () 
   const result = await validateWorkflow(await fixture({ req: requirement().replace('status: accepted', 'status: planned') }));
   assert.ok(codes(result).includes('WF_HISTORY_STATUS_MISMATCH'));
 });
+
+test('rejects invalid optional requirement field types', async () => {
+  const req = requirement().replace('plan_reason: No implementation plan needed', 'plan_reason: No implementation plan needed\nowner:\n  - not-a-scalar\nreviewers: reviewer\napprovers:\n  - 42');
+  const result = await validateWorkflow(await fixture({ req }));
+  assert.ok(codes(result).includes('WF_REQ_SCHEMA_INVALID'));
+});
+
+test('rejects extra keys in a history entry', async () => {
+  const req = requirement().replace('    note: Created', '    note: Created\n    unexpected: value');
+  const result = await validateWorkflow(await fixture({ req }));
+  assert.ok(codes(result).includes('WF_REQ_SCHEMA_INVALID'));
+});
