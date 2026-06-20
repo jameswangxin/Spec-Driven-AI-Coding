@@ -31,6 +31,10 @@ node /path/to/spec-driven-ai-coding/bin/workflow.js
 # 只安装或更新项目级 Skills
 node /path/to/spec-driven-ai-coding/bin/workflow.js --skills-only
 
+# 安装 Claude Code Skills；all 同时安装 Codex 与 Claude Code Skills
+node /path/to/spec-driven-ai-coding/bin/workflow.js --target claude
+node /path/to/spec-driven-ai-coding/bin/workflow.js --target all --with-claude-md
+
 # 只初始化 .workflow/ 模板
 node /path/to/spec-driven-ai-coding/bin/workflow.js --init-only
 
@@ -68,6 +72,8 @@ node /path/to/spec-driven-ai-coding/bin/workflow.js --uninstall --yes
 ```
 
 Skills 在执行前会读取项目地图、流程手册、当前上下文和索引。需求状态变化必须写入 `history`，并同步更新索引或活动入口。
+
+Claude Code 使用 `.claude/skills/workflow-*/SKILL.md` 加载同一套入口。`--with-claude-md` 只在根目录尚无 `CLAUDE.md` 时创建最小引导；已有文件保持不变。
 
 ## 初始化目标项目
 
