@@ -4,8 +4,8 @@ title: Replace with requirement title
 status: draft
 complexity: simple
 risk_tags: []
-plan_required: false
-plan_reason: "Simple low-risk change."
+plan_required: true
+plan_reason: "Required for medium, complex, or high-risk work; set false only for simple low-risk changes and explain why."
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 references: []

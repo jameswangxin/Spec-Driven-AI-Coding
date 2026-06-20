@@ -12,6 +12,7 @@
 ## Tests
 
 - `command`: result
+- If not run: reason, substitute verification, and residual risk.
 
 ## Risks
 
