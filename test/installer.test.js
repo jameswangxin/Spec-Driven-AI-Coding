@@ -2,9 +2,14 @@ import assert from 'node:assert/strict';
 import { access, mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
+import { execFile as execFileCallback } from 'node:child_process';
 import { test } from 'node:test';
 
 import { inspect, install, uninstall } from '../lib/installer.js';
+
+const execFile = promisify(execFileCallback);
+const CLI = join(process.cwd(), 'bin', 'workflow.js');
 
 async function withTarget(run) {
   const target = await mkdtemp(join(tmpdir(), 'workflow-template-installer-'));
@@ -147,6 +152,20 @@ test('uninstall removes managed workflow contents but preserves custom skills an
   });
 });
 
+test('uninstall preserves project workflow records while removing managed template files', async () => {
+  await withTarget(async (target) => {
+    const requirement = join(target, '.workflow', 'requirements', 'REQ-0001.md');
+    await install({ target });
+    await mkdir(join(target, '.workflow', 'requirements'), { recursive: true });
+    await writeFile(requirement, '# User requirement\n');
+
+    await uninstall({ target, initOnly: true });
+
+    assert.equal(await exists(requirement), true);
+    assert.equal(await exists(join(target, '.workflow', 'project.md')), false);
+  });
+});
+
 test('install rejects the user home directory as a target', async () => {
   await assert.rejects(install({ target: homedir() }), /home directory/i);
 });
@@ -160,5 +179,45 @@ test('install rejects a symlink that resolves to the user home directory', async
 
     await assert.rejects(install({ target: symlinkTarget, homeDir: home }), /home directory/i);
     assert.equal(await exists(join(home, '.workflow')), false);
+  });
+});
+
+test('install rejects workflow and skills output symlinks', async () => {
+  await withTarget(async (target) => {
+    const outside = join(target, 'outside');
+    await mkdir(outside);
+    await symlink(outside, join(target, '.workflow'));
+    await assert.rejects(install({ target, initOnly: true }), /symbolic link/i);
+    await rm(join(target, '.workflow'));
+
+    await symlink(outside, join(target, '.codex'));
+    await assert.rejects(install({ target, skillsOnly: true }), /symbolic link/i);
+    await rm(join(target, '.codex'));
+
+    await mkdir(join(target, '.codex'));
+    await symlink(outside, join(target, '.codex', 'skills'));
+    await assert.rejects(install({ target, skillsOnly: true }), /symbolic link/i);
+    assert.equal(await exists(join(outside, 'project.md')), false);
+  });
+});
+
+test('CLI supports install modes, check, uninstall confirmation, and help', async () => {
+  await withTarget(async (target) => {
+    const help = await execFile(process.execPath, [CLI, '--help'], { cwd: target });
+    assert.match(help.stdout, /Usage:/);
+
+    await execFile(process.execPath, [CLI, '--init-only'], { cwd: target });
+    assert.equal(await exists(join(target, '.workflow', 'project.md')), true);
+    await assert.rejects(
+      execFile(process.execPath, [CLI, '--uninstall'], { cwd: target }),
+      /--yes/,
+    );
+
+    await execFile(process.execPath, [CLI, '--skills-only'], { cwd: target });
+    await assertWorkflowSkills(target, true);
+    await execFile(process.execPath, [CLI, '--check'], { cwd: target });
+    await execFile(process.execPath, [CLI, '--uninstall', '--yes'], { cwd: target });
+
+    await assert.rejects(execFile(process.execPath, [CLI, '--check'], { cwd: target }), { code: 1 });
   });
 });
