@@ -13,10 +13,12 @@ This directory is the source of truth for requirements, plans, implementation re
 
 ## Active Work
 
+<!-- workflow:active-work:start -->
 当前没有活动需求。请基于 [需求模板](templates/requirement.md) 创建目标项目的 `REQ-0001`。
 
 | ID | Title | Status | Plan | Implementation | Capabilities |
 | --- | --- | --- | --- | --- | --- |
+<!-- workflow:active-work:end -->
 
 ## Requirement Status Flow
 
@@ -47,8 +49,10 @@ Simple low-risk requirements may skip a plan only when the requirement records `
 
 ## Capability Specs
 
+<!-- workflow:capabilities:start -->
 | ID | Title | Status | Introduced By |
 | --- | --- | --- | --- |
+<!-- workflow:capabilities:end -->
 
 ## Templates
 

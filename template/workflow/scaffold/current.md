@@ -4,6 +4,7 @@
 
 本文件是默认入口，适合单需求工作或当前主线工作。多个需求并行时，不要反复覆盖本文件，应使用 `.workflow/active/REQ-xxxx.md`。
 
+<!-- workflow:current:start -->
 当前目标项目还没有活动需求。首次使用时，请创建：
 
 - `.workflow/requirements/REQ-0001.md`
@@ -11,6 +12,7 @@
 - `.workflow/implementations/REQ-0001-implementation.md`
 
 创建后，更新本文件，让 Agent 从当前需求进入上下文。
+<!-- workflow:current:end -->
 
 并行工作时，创建：
 
