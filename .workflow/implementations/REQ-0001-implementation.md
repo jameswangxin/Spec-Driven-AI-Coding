@@ -13,8 +13,9 @@
 
 ## Commits / PRs
 
-- commit: 1796747 docs: verify initial workflow protocol
-- commit: a9f1720 docs: record workflow verification commit
+- implementation commits: e305168..1796747
+- verification record updates: a9f1720, e3f6ce6
+- note: commits that only update this record may appear after the commits listed here; use `git log --oneline` for the exact repository HEAD.
 - PR: not applicable
 
 ## Tests
@@ -24,7 +25,7 @@
 - `test -f .workflow/capabilities/CAP-0001.md && test -f .workflow/implementations/REQ-0001-implementation.md`: passed
 - `test -f .workflow/templates/requirement.md && test -f .workflow/templates/plan.md && test -f .workflow/templates/implementation.md && test -f .workflow/templates/capability.md`: passed
 - `rg -n "REQ-0001|CAP-0001" .workflow/index.md .workflow/current.md .workflow/requirements/REQ-0001.md .workflow/capabilities/CAP-0001.md`: passed
-- `rg -n "## Acceptance Criteria|## Test Strategy|## Scope Changed|## Boundary" .workflow/templates`: passed
+- `rg -n "## Acceptance Criteria" .workflow/templates/requirement.md && rg -n "## Test Strategy" .workflow/templates/plan.md && rg -n "## Scope Changed" .workflow/templates/implementation.md && rg -n "## Boundary" .workflow/templates/capability.md`: passed
 - `git status --short`: passed, clean worktree after final commit
 
 ## Risks
