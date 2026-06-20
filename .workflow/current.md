@@ -14,7 +14,8 @@ This file describes the full REQ-0001 setup scope. Some linked context files are
 1. `.workflow/current.md`
 2. `.workflow/requirements/REQ-0001.md`
 3. `.workflow/plans/REQ-0001-plan.md`
-4. `.workflow/capabilities/CAP-0001.md`
+4. `.workflow/implementations/REQ-0001-implementation.md`
+5. `.workflow/capabilities/CAP-0001.md`
 
 ## Allowed Scope
 
