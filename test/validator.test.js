@@ -100,3 +100,32 @@ test('rejects extra keys in a history entry', async () => {
   const result = await validateWorkflow(await fixture({ req }));
   assert.ok(codes(result).includes('WF_REQ_SCHEMA_INVALID'));
 });
+
+test('rejects bare collection keys instead of treating them as empty arrays', async () => {
+  const req = requirement()
+    .replace('risk_tags: []', 'risk_tags:')
+    .replace('references: []', 'references:')
+    .replace('capabilities:\n  - CAP-0001', 'capabilities:');
+  const cap = capability().replace('updated_by:\n  - REQ-0001', 'updated_by:');
+  const result = await validateWorkflow(await fixture({ req, caps: { 'CAP-0001.md': cap } }));
+  assert.ok(codes(result).includes('WF_REQ_SCHEMA_INVALID'));
+  assert.ok(codes(result).includes('WF_CAP_SCHEMA_INVALID'));
+});
+
+test('rejects duplicate top-level and history mapping keys', async () => {
+  const duplicateTopLevel = requirement().replace('title: Example requirement', 'title: Example requirement\ntitle: Repeated title');
+  const topLevel = await validateWorkflow(await fixture({ req: duplicateTopLevel }));
+  assert.ok(codes(topLevel).includes('WF_FRONTMATTER_INVALID'));
+
+  const duplicateHistoryKey = requirement().replace('    note: Created', '    note: Created\n    note: Repeated note');
+  const history = await validateWorkflow(await fixture({ req: duplicateHistoryKey }));
+  assert.ok(codes(history).includes('WF_FRONTMATTER_INVALID'));
+});
+
+test('rejects impossible ISO calendar dates', async () => {
+  const invalidCreated = await validateWorkflow(await fixture({ req: requirement().replace('created_at: 2026-01-01', 'created_at: 2026-02-31') }));
+  assert.ok(codes(invalidCreated).includes('WF_REQ_SCHEMA_INVALID'));
+
+  const invalidUpdated = await validateWorkflow(await fixture({ req: requirement().replace('updated_at: 2026-01-02', 'updated_at: 2026-13-01') }));
+  assert.ok(codes(invalidUpdated).includes('WF_UPDATED_AT_INVALID'));
+});
