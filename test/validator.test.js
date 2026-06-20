@@ -129,3 +129,9 @@ test('rejects impossible ISO calendar dates', async () => {
   const invalidUpdated = await validateWorkflow(await fixture({ req: requirement().replace('updated_at: 2026-01-02', 'updated_at: 2026-13-01') }));
   assert.ok(codes(invalidUpdated).includes('WF_UPDATED_AT_INVALID'));
 });
+
+test('accepts valid ISO dates in years below 0100', async () => {
+  const req = requirement().replace('created_at: 2026-01-01', 'created_at: 0099-12-31').replaceAll('2026-01-02', '0099-12-31').replaceAll('2026-01-01', '0099-12-31');
+  const result = await validateWorkflow(await fixture({ req }));
+  assert.equal(result.valid, true);
+});
