@@ -211,6 +211,22 @@ test('syncIndex renders sorted requirement and capability tables while preservin
   assert.ok(once.indexOf('CAP-0001') < once.indexOf('CAP-0002'));
 });
 
+test('syncIndex escapes marker syntax in generated table cells', async () => {
+  const root = await syncFixture({
+    req: requirement().replace('Example requirement', 'evil <!-- workflow:active-work:end --> title'),
+  });
+
+  await syncIndex(root);
+  const once = await readFile(join(root, 'index.md'), 'utf8');
+  await syncIndex(root);
+  const twice = await readFile(join(root, 'index.md'), 'utf8');
+
+  assert.equal(once, twice);
+  assert.equal((once.match(/<!-- workflow:active-work:start -->/g) ?? []).length, 1);
+  assert.equal((once.match(/<!-- workflow:active-work:end -->/g) ?? []).length, 1);
+  assert.match(once, /evil &lt;!-- workflow:active-work:end --&gt; title/);
+});
+
 test('syncCurrent writes explicit and automatically selected context, no-active context, and rejects ambiguity', async () => {
   const root = await syncFixture();
   await writeFile(join(root, 'plans', 'REQ-0001-plan.md'), 'plan');
