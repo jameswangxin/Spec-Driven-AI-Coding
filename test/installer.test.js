@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -79,6 +79,19 @@ test('force install overwrites an existing template file', async () => {
   });
 });
 
+test('force install overwrites an existing managed workflow skill', async () => {
+  await withTarget(async (target) => {
+    const skillFile = join(target, '.codex', 'skills', 'workflow-new', 'SKILL.md');
+    const sourceFile = join('skills', 'workflow-new', 'SKILL.md');
+    await install({ target });
+    await writeFile(skillFile, 'outdated managed skill\n');
+
+    await install({ target, force: true });
+
+    assert.equal(await readFile(skillFile, 'utf8'), await readFile(sourceFile, 'utf8'));
+  });
+});
+
 test('skillsOnly installs skills without creating a workflow directory', async () => {
   await withTarget(async (target) => {
     const result = await install({ target, skillsOnly: true });
@@ -136,4 +149,16 @@ test('uninstall removes managed workflow contents but preserves custom skills an
 
 test('install rejects the user home directory as a target', async () => {
   await assert.rejects(install({ target: homedir() }), /home directory/i);
+});
+
+test('install rejects a symlink that resolves to the user home directory', async () => {
+  await withTarget(async (target) => {
+    const home = join(target, 'simulated-home');
+    const symlinkTarget = join(target, 'project-link');
+    await mkdir(home);
+    await symlink(home, symlinkTarget);
+
+    await assert.rejects(install({ target: symlinkTarget, homeDir: home }), /home directory/i);
+    assert.equal(await exists(join(home, '.workflow')), false);
+  });
 });
