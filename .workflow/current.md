@@ -2,7 +2,7 @@
 
 ## Current Requirement
 
-This file describes the full REQ-0001 setup scope. Some linked context files are created by later setup tasks before final verification.
+This file describes the verified REQ-0001 workflow context. Future work should update this file before implementation begins.
 
 - Requirement: [REQ-0001](requirements/REQ-0001.md)
 - Plan: [REQ-0001 plan](plans/REQ-0001-plan.md)

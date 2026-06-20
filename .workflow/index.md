@@ -6,11 +6,11 @@ This directory is the source of truth for requirements, plans, implementation re
 
 ## Active Work
 
-The linked requirement, plan, implementation record, and capability files are created by later REQ-0001 setup tasks.
+REQ-0001 setup files have been created and verified. Future work should start from `.workflow/current.md` and follow the linked context.
 
 | ID | Title | Status | Plan | Implementation | Capabilities |
 | --- | --- | --- | --- | --- | --- |
-| REQ-0001 | Establish project-local workflow protocol | planned | [plan](plans/REQ-0001-plan.md) | [implementation](implementations/REQ-0001-implementation.md) | [CAP-0001](capabilities/CAP-0001.md) |
+| REQ-0001 | Establish project-local workflow protocol | verified | [plan](plans/REQ-0001-plan.md) | [implementation](implementations/REQ-0001-implementation.md) | [CAP-0001](capabilities/CAP-0001.md) |
 
 ## Requirement Status Flow
 
