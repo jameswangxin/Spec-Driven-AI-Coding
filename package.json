@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "workflow-template": "bin/workflow.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
