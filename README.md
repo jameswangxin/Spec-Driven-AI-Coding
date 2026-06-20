@@ -33,6 +33,15 @@ node /path/to/spec-driven-ai-coding/bin/workflow.js --check
 
 ## Codex 工作流入口
 
+Claude Code 也可使用同一套工作流。安装时选择目标：
+
+```bash
+node /path/to/spec-driven-ai-coding/bin/workflow.js --target claude --with-claude-md
+node /path/to/spec-driven-ai-coding/bin/workflow.js --target all --with-claude-md
+```
+
+Claude Skills 会安装到 `.claude/skills/`，Codex Skills 位于 `.codex/skills/`；两者都读写同一个 `.workflow/`。`--with-claude-md` 只会在目标项目没有 `CLAUDE.md` 时创建最小入口，不会覆盖团队已有指令。
+
 安装完成后，可以在 Codex 中使用这些入口：
 
 | Skill | 用途 |

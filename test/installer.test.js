@@ -107,6 +107,16 @@ test('skillsOnly installs skills without creating a workflow directory', async (
   });
 });
 
+test('Claude target installs only project Claude skills', async () => {
+  await withTarget(async (target) => {
+    await install({ target, skillsOnly: true, targetPlatform: 'claude' });
+    for (const skill of WORKFLOW_SKILLS) {
+      assert.equal(await exists(join(target, '.claude', 'skills', skill, 'SKILL.md')), true);
+    }
+    await assertWorkflowSkills(target, false);
+  });
+});
+
 test('initOnly installs the workflow without installing managed skills', async () => {
   await withTarget(async (target) => {
     const result = await install({ target, initOnly: true });
