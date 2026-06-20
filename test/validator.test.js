@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { validateWorkflow } from '../lib/validator.js';
+import { assertStatus, syncCurrent, syncIndex, validateWorkflow } from '../lib/validator.js';
 
 const requirement = (overrides = '') => `---
 id: REQ-0001
@@ -47,6 +47,49 @@ async function fixture({ reqName = 'REQ-0001.md', req = requirement(), caps = { 
   await mkdir(join(root, 'capabilities'));
   await writeFile(join(root, 'requirements', reqName), req);
   await Promise.all(Object.entries(caps).map(([name, content]) => writeFile(join(root, 'capabilities', name), content)));
+  return root;
+}
+
+const indexTemplate = `# Workflow Index
+
+Static introduction.
+
+## Active Work
+
+<!-- workflow:active-work:start -->
+old active content
+<!-- workflow:active-work:end -->
+
+Static middle text.
+
+## Capability Specs
+
+<!-- workflow:capabilities:start -->
+old capabilities
+<!-- workflow:capabilities:end -->
+
+Static footer.
+`;
+
+const currentTemplate = `# Current Workflow Context
+
+## Current Requirement
+
+<!-- workflow:current:start -->
+old current content
+<!-- workflow:current:end -->
+
+## Required Reading Before Coding
+
+Static reading instructions.
+`;
+
+async function syncFixture(options = {}) {
+  const root = await fixture(options);
+  await mkdir(join(root, 'plans'));
+  await mkdir(join(root, 'implementations'));
+  await writeFile(join(root, 'index.md'), indexTemplate);
+  await writeFile(join(root, 'current.md'), currentTemplate);
   return root;
 }
 
@@ -134,4 +177,58 @@ test('accepts valid ISO dates in years below 0100', async () => {
   const req = requirement().replace('created_at: 2026-01-01', 'created_at: 0099-12-31').replaceAll('2026-01-02', '0099-12-31').replaceAll('2026-01-01', '0099-12-31');
   const result = await validateWorkflow(await fixture({ req }));
   assert.equal(result.valid, true);
+});
+
+test('assertStatus returns an allowed requirement and rejects missing or disallowed statuses', async () => {
+  const root = await fixture();
+  const record = await assertStatus(root, 'REQ-0001', ['accepted', 'planned']);
+  assert.equal(record.id, 'REQ-0001');
+
+  await assert.rejects(assertStatus(root, 'REQ-0001', ['planned']), (error) => error.code === 'WF_STATUS_NOT_ALLOWED');
+  await assert.rejects(assertStatus(root, 'REQ-9999', ['accepted']), (error) => error.code === 'WF_REQUIREMENT_MISSING');
+});
+
+test('syncIndex renders sorted requirement and capability tables while preserving static text idempotently', async () => {
+  const req2 = requirement().replaceAll('REQ-0001', 'REQ-0002').replaceAll('CAP-0001', 'CAP-0002').replace('Example requirement', 'Second requirement').replace('status: accepted', 'status: planned').replace('to: accepted', 'to: planned').replace('from: draft', 'from: accepted').replace('date: 2026-01-02', 'date: 2026-01-03').replace('updated_at: 2026-01-02', 'updated_at: 2026-01-03').replace('    from: draft\n    to: planned', '    from: draft\n    to: accepted\n    note: Accepted\n  - date: 2026-01-03\n    from: accepted\n    to: planned');
+  const cap2 = capability().replaceAll('CAP-0001', 'CAP-0002').replace('Example capability', 'Second capability').replaceAll('REQ-0001', 'REQ-0002');
+  const root = await syncFixture({ caps: { 'CAP-0002.md': cap2, 'CAP-0001.md': capability() } });
+  await writeFile(join(root, 'requirements', 'REQ-0002.md'), req2);
+  await writeFile(join(root, 'plans', 'REQ-0001-plan.md'), 'plan');
+  await writeFile(join(root, 'implementations', 'REQ-0002-implementation.md'), 'implementation');
+
+  await syncIndex(root);
+  const once = await readFile(join(root, 'index.md'), 'utf8');
+  await syncIndex(root);
+  const twice = await readFile(join(root, 'index.md'), 'utf8');
+
+  assert.equal(once, twice);
+  assert.match(once, /Static introduction\.|Static middle text\.|Static footer\./);
+  assert.match(once, /\| REQ-0001 \| Example requirement \| accepted \| yes \| no \| CAP-0001 \|/);
+  assert.match(once, /\| REQ-0002 \| Second requirement \| planned \| no \| yes \| CAP-0002 \|/);
+  assert.match(once, /\| CAP-0001 \| Example capability \| active \| REQ-0001 \|/);
+  assert.match(once, /\| CAP-0002 \| Second capability \| active \| REQ-0002 \|/);
+  assert.ok(once.indexOf('REQ-0001') < once.indexOf('REQ-0002'));
+  assert.ok(once.indexOf('CAP-0001') < once.indexOf('CAP-0002'));
+});
+
+test('syncCurrent writes explicit and automatically selected context, no-active context, and rejects ambiguity', async () => {
+  const root = await syncFixture();
+  await writeFile(join(root, 'plans', 'REQ-0001-plan.md'), 'plan');
+  await syncCurrent(root, 'REQ-0001');
+  let current = await readFile(join(root, 'current.md'), 'utf8');
+  assert.match(current, /\[REQ-0001\]\(requirements\/REQ-0001\.md\)/);
+  assert.match(current, /\[Plan\]\(plans\/REQ-0001-plan\.md\)/);
+  assert.match(current, /Static reading instructions\./);
+
+  await syncCurrent(root);
+  current = await readFile(join(root, 'current.md'), 'utf8');
+  assert.match(current, /REQ-0001/);
+
+  const inactive = await syncFixture({ req: requirement().replace('status: accepted', 'status: verified').replace('to: accepted', 'to: verified') });
+  await syncCurrent(inactive);
+  assert.match(await readFile(join(inactive, 'current.md'), 'utf8'), /当前没有活动需求。/);
+
+  const ambiguous = await syncFixture();
+  await writeFile(join(ambiguous, 'requirements', 'REQ-0002.md'), requirement().replaceAll('REQ-0001', 'REQ-0002').replace('Example requirement', 'Another requirement'));
+  await assert.rejects(syncCurrent(ambiguous), (error) => error.code === 'WF_CURRENT_AMBIGUOUS');
 });
