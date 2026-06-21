@@ -1,0 +1,10 @@
+policies:
+  - skill: "workflow-*"
+    auto_execute: false
+    human_confirm: true
+    audit_level: detailed
+
+  - skill: "*"
+    auto_execute: false
+    human_confirm: true
+    audit_level: standard

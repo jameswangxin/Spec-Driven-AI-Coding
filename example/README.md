@@ -13,6 +13,7 @@
 1. [给人的使用指南](for-human/README.md)
 2. [给 Agent 的使用指南](for-agent/README.md)
 3. [样例需求链路](sample-requirement/README.md)
+4. [Skill 编排与审计示例](req-0002-orchestration/README.md)
 
 ## 目标项目初始化
 

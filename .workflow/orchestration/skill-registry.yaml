@@ -1,0 +1,79 @@
+skills:
+  - id: workflow-brainstorm
+    name: Workflow Brainstorm
+    description: Explore and clarify a new idea before it becomes a formal requirement
+    side_effects:
+      - writes_file
+    safety_level: write-workflow-only
+    triggers:
+      - intent: brainstorm
+        keywords: ["探索", "头脑风暴", "想法"]
+        file_patterns: []
+
+  - id: workflow-new
+    name: Workflow New
+    description: Create a new requirement work item
+    side_effects:
+      - writes_file
+    safety_level: write-workflow-only
+    triggers:
+      - intent: new
+        keywords: ["新建", "需求"]
+        file_patterns: ["requirements/REQ-*.md"]
+
+  - id: workflow-confirm
+    name: Workflow Confirm
+    description: Confirm a draft requirement before planning
+    side_effects:
+      - writes_file
+    safety_level: write-workflow-only
+    triggers:
+      - intent: confirm
+        keywords: ["确认", "澄清"]
+        file_patterns: ["requirements/REQ-*.md"]
+
+  - id: workflow-plan
+    name: Workflow Plan
+    description: Create a technical plan for an accepted requirement
+    side_effects:
+      - writes_file
+    safety_level: write-workflow-only
+    triggers:
+      - intent: plan
+        keywords: ["规划", "方案"]
+        file_patterns: ["requirements/REQ-*.md", "plans/REQ-*-plan.md"]
+
+  - id: workflow-exec
+    name: Workflow Execute
+    description: Execute a planned requirement
+    side_effects:
+      - writes_file
+      - git_commit
+    safety_level: write-code
+    triggers:
+      - intent: execute
+        keywords: ["实施", "执行"]
+        file_patterns:
+          ["plans/REQ-*-plan.md", "implementations/REQ-*-implementation.md"]
+
+  - id: workflow-check
+    name: Workflow Check
+    description: Verify an implemented requirement
+    side_effects:
+      - writes_file
+    safety_level: write-workflow-only
+    triggers:
+      - intent: check
+        keywords: ["验证", "检查"]
+        file_patterns: ["implementations/REQ-*-implementation.md"]
+
+  - id: workflow-archive
+    name: Workflow Archive
+    description: Archive a verified requirement
+    side_effects:
+      - writes_file
+    safety_level: write-workflow-only
+    triggers:
+      - intent: archive
+        keywords: ["归档", "关闭"]
+        file_patterns: ["requirements/REQ-*.md"]
