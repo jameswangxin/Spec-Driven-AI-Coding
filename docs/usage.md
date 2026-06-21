@@ -38,6 +38,10 @@ node /path/to/spec-driven-ai-coding/bin/workflow.js --init-only
 # 查看模板、docs 骨架和 Skills 是否完整；存在缺失时退出码为 1
 node /path/to/spec-driven-ai-coding/bin/workflow.js --check
 
+# 汇总某个 REQ 的工作流编排审计
+node /path/to/spec-driven-ai-coding/bin/workflow.js --audit-summary REQ-0001
+node /path/to/spec-driven-ai-coding/bin/workflow.js --audit-summary REQ-0001 --format json
+
 # 卸载由安装器管理的模板和 Skills，必须显式确认
 node /path/to/spec-driven-ai-coding/bin/workflow.js --uninstall --yes
 ```
@@ -69,6 +73,20 @@ node /path/to/spec-driven-ai-coding/bin/workflow.js --uninstall --yes
 Skills 在执行前会读取项目地图、流程手册、当前上下文和索引。状态变化必须写入 proposal 的 `history`，并同步更新索引或活动入口。
 
 Claude Code 使用 `.claude/skills/workflow-*/SKILL.md` 加载同一套入口。`--with-claude-md` 只在根目录尚无 `CLAUDE.md` 时创建最小引导；已有文件保持不变。
+
+## 编排审计
+
+`--orchestrate REQ-xxxx` 会在 `.workflow/audit/executions/` 写入 YAML 审计文件。该日志的语义是 **workflow decision audit**：它证明编排器根据当前状态推荐、暂停或批准了哪个 Skill，而不是证明外部 Agent 已经完整执行该 Skill。
+
+每条新审计会显式记录：
+
+- `execution_scope: workflow_decision`；
+- `agent_execution.captured: false` 以及未捕获真实 Runtime 的原因；
+- 编排决策的 `started_at`、`completed_at`、`workflow_decision_duration_ms`；
+- 每个 step 的决策耗时、人工确认状态和自动执行状态；
+- Skill 的 `source_path`、`content_hash`、`safety_level` 和 `side_effects`。
+
+`--audit-summary REQ-xxxx` 会按需求汇总这些审计文件，列出历次 execution、Skill 调用次数、决策耗时和已知限制。当前版本不记录 token、费用、真实工具调用或 Agent 执行耗时；这些数据必须由后续 Codex / Claude Code / 其他 Agent Runtime Adapter 提供。
 
 ## 手动初始化目标项目
 

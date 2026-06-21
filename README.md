@@ -61,6 +61,9 @@ npx workflow-template --validate
 npx workflow-template --sync-index
 npx workflow-template --sync-current REQ-0001
 
+# 汇总某个需求的编排审计日志
+npx workflow-template --audit-summary REQ-0001
+
 # 只安装 Skills、只初始化模板，或安装 Claude Code Skills
 npx workflow-template --skills-only
 npx workflow-template --init-only
@@ -71,6 +74,8 @@ npx workflow-template --uninstall --yes
 ```
 
 `--orchestrate REQ-xxxx` 是高级接口，需要目标 `.workflow/orchestration/` 自行提供 `skill-registry.yaml` 和 `execution-policies.yaml`。
+
+编排审计日志记录的是工作流决策，不代表外部 Agent Runtime 已执行 Skill。日志会保存决策耗时、人工确认状态、Skill 来源路径和内容 hash；token、费用、真实工具调用和 Agent 运行耗时需要后续 Runtime Adapter 提供。
 
 ## 开发与发布前检查
 
