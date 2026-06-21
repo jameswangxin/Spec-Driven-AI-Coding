@@ -1,6 +1,9 @@
 {
-  "private": true,
+  "name": "@marsx/ai-coding-workflow-toolkit",
+  "version": "0.1.0",
+  "description": "A spec-driven AI coding workflow toolkit with executable validation and project-local agent skills.",
   "type": "module",
+  "license": "MIT",
   "engines": {
     "node": ">=20"
   },
@@ -9,7 +12,33 @@
   },
   "scripts": {
     "check": "node --check bin/workflow.js && node --check lib/installer.js && node --check lib/orchestrator.js && node --check lib/validator.js",
+    "pack:check": "npm pack --dry-run",
+    "prepack": "npm run check && npm test",
+    "prepublishOnly": "npm run check && npm test",
     "test": "node --test"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "skills",
+    "template"
+  ],
+  "keywords": [
+    "agent-skills",
+    "codex",
+    "spec-driven-development",
+    "workflow"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jameswangxin/Spec-Driven-AI-Coding.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jameswangxin/Spec-Driven-AI-Coding/issues"
+  },
+  "homepage": "https://github.com/jameswangxin/Spec-Driven-AI-Coding#readme",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "ajv": "^8.20.0",
