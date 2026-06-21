@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.local/workflow/requirement.schema.json",
-  "title": "Workflow Requirement Frontmatter",
+  "title": "Workflow Change Proposal Frontmatter",
   "type": "object",
   "required": [
     "id",
@@ -14,7 +14,7 @@
     "created_at",
     "updated_at",
     "references",
-    "capabilities",
+    "specs",
     "history"
   ],
   "additionalProperties": true,
@@ -44,24 +44,13 @@
     },
     "complexity": {
       "type": "string",
-      "enum": [
-        "simple",
-        "medium",
-        "complex"
-      ]
+      "enum": ["simple", "medium", "complex"]
     },
     "risk_tags": {
       "type": "array",
       "items": {
         "type": "string",
-        "enum": [
-          "data",
-          "security",
-          "migration",
-          "external-api",
-          "architecture",
-          "cross-module"
-        ]
+        "enum": ["data", "security", "migration", "external-api", "architecture", "cross-module"]
       },
       "uniqueItems": true
     },
@@ -82,46 +71,29 @@
     },
     "references": {
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     },
-    "capabilities": {
+    "specs": {
       "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^CAP-[0-9]{4}$"
-      }
+      "items": { "type": "string" }
     },
     "owner": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "reviewers": {
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     },
     "approvers": {
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     },
     "history": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": [
-          "date",
-          "from",
-          "to",
-          "note"
-        ],
+        "required": ["date", "from", "to", "note"],
         "additionalProperties": false,
         "properties": {
           "date": {
@@ -129,10 +101,7 @@
             "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
           },
           "from": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "to": {
             "type": "string"
