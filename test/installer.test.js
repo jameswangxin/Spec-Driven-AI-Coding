@@ -143,6 +143,23 @@ test('initOnly installs the workflow and docs scaffold without managed skills', 
   });
 });
 
+test('withClaudeMd creates a guide for workflow governance and docs records', async () => {
+  await withTarget(async (target) => {
+    await install({ target, withClaudeMd: true });
+
+    const guide = await readFile(join(target, 'CLAUDE.md'), 'utf8');
+
+    assert.match(guide, /@\.workflow\/project\.md/);
+    assert.match(guide, /@\.workflow\/current\.md/);
+    assert.match(guide, /docs\/changes\//);
+    assert.match(guide, /docs\/specs\//);
+    assert.doesNotMatch(
+      guide,
+      /only requirement, plan, implementation, and verification record/,
+    );
+  });
+});
+
 test('inspect does not write and reports missing managed files', async () => {
   await withTarget(async (target) => {
     const entriesBefore = await readdir(target);
