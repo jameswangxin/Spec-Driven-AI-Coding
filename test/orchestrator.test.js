@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, writeFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { stringify as stringifyYaml } from "yaml";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 import {
   loadSkillRegistry,
@@ -14,6 +14,8 @@ import {
   runOrchestration,
   writeAuditLog,
   generateExecutionId,
+  loadAuditSummary,
+  formatAuditSummary,
 } from "../lib/orchestrator.js";
 
 const skillRegistryYaml = `skills:
@@ -65,6 +67,7 @@ const skillRegistryYaml = `skills:
   - id: workflow-check
     name: Workflow Check
     description: Verify an implemented requirement
+    source_path: .codex/skills/workflow-check/SKILL.md
     side_effects:
       - writes_file
     safety_level: write-workflow-only
@@ -193,8 +196,12 @@ async function orchestrationFixture(options = {}) {
   await mkdir(join(workflowRoot, "orchestration"), { recursive: true });
   await mkdir(join(workflowRoot, "audit", "executions"), { recursive: true });
   await mkdir(changeDir, { recursive: true });
+  await mkdir(join(projectRoot, ".codex", "skills", "workflow-plan"), { recursive: true });
+  await mkdir(join(projectRoot, ".codex", "skills", "workflow-check"), { recursive: true });
   await writeFile(join(workflowRoot, "orchestration", "skill-registry.yaml"), skillRegistryYaml);
   await writeFile(join(workflowRoot, "orchestration", "execution-policies.yaml"), executionPoliciesYaml);
+  await writeFile(join(projectRoot, ".codex", "skills", "workflow-plan", "SKILL.md"), "# Workflow Plan\n\nPlan an accepted requirement.\n");
+  await writeFile(join(projectRoot, ".codex", "skills", "workflow-check", "SKILL.md"), "# Workflow Check\n\nVerify an implemented requirement.\n");
   await writeFile(
     join(changeDir, "proposal.md"),
     requirementContent(options.status ?? "accepted", options.planRequired ?? true),
@@ -418,6 +425,131 @@ test("runOrchestration writes audit log with docs artifact paths", async () => {
   assert.ok(content.includes("requirement: docs/changes/REQ-0002-orchestration/proposal.md"));
   assert.ok(content.includes("plan: docs/changes/REQ-0002-orchestration/design.md"));
   assert.ok(content.includes("proposal: docs/changes/REQ-0002-orchestration/proposal.md"));
+});
+
+test("runOrchestration audit log records workflow scope, durations, and skill provenance", async () => {
+  const { workflowRoot } = await orchestrationFixture({ status: "implemented" });
+  await runOrchestration(workflowRoot, "REQ-0002", { confirm: true });
+  const files = await readdir(join(workflowRoot, "audit", "executions"));
+  const audit = parseYaml(await readFile(join(workflowRoot, "audit", "executions", files[0]), "utf8"));
+  assert.equal(audit.requirement_id, "REQ-0002");
+  assert.equal(audit.execution_scope, "workflow_decision");
+  assert.equal(audit.agent_execution.captured, false);
+  assert.equal(audit.agent_execution.reason, "external_agent_runtime_not_invoked");
+  assert.equal(audit.agent_execution.usage_captured, false);
+  assert.equal(audit.agent_execution.cost_captured, false);
+  assert.equal(typeof audit.workflow_decision_duration_ms, "number");
+  assert.ok(audit.workflow_decision_duration_ms >= 0);
+  assert.equal(typeof audit.steps[0].workflow_decision_duration_ms, "number");
+  assert.ok(audit.steps[0].workflow_decision_duration_ms >= 0);
+  assert.equal(audit.steps[0].skill_provenance.id, "workflow-check");
+  assert.equal(audit.steps[0].skill_provenance.name, "Workflow Check");
+  assert.equal(audit.steps[0].skill_provenance.source_path, ".codex/skills/workflow-check/SKILL.md");
+  assert.equal(audit.steps[0].skill_provenance.provenance_captured, true);
+  assert.match(audit.steps[0].skill_provenance.content_hash, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(audit.steps[0].skill_provenance.safety_level, "write-workflow-only");
+  assert.deepEqual(audit.steps[0].skill_provenance.side_effects, ["writes_file"]);
+});
+
+test("runOrchestration infers project-local workflow skill provenance when registry omits source_path", async () => {
+  const { workflowRoot } = await orchestrationFixture({ status: "accepted" });
+  await runOrchestration(workflowRoot, "REQ-0002", { confirm: true });
+  const files = await readdir(join(workflowRoot, "audit", "executions"));
+  const audit = parseYaml(await readFile(join(workflowRoot, "audit", "executions", files[0]), "utf8"));
+  assert.equal(audit.steps[0].skill, "workflow-plan");
+  assert.equal(audit.steps[0].skill_provenance.source_path, ".codex/skills/workflow-plan/SKILL.md");
+  assert.equal(audit.steps[0].skill_provenance.provenance_captured, true);
+  assert.match(audit.steps[0].skill_provenance.content_hash, /^sha256:[a-f0-9]{64}$/);
+});
+
+test("runOrchestration does not hash skill source paths outside the project", async () => {
+  const { workflowRoot } = await orchestrationFixture({ status: "implemented" });
+  const registry = await loadSkillRegistry(workflowRoot);
+  registry.skills.find((s) => s.id === "workflow-check").source_path = "../outside/SKILL.md";
+  await writeFile(join(workflowRoot, "orchestration", "skill-registry.yaml"), stringifyYaml(registry));
+
+  await runOrchestration(workflowRoot, "REQ-0002", { confirm: true });
+
+  const files = await readdir(join(workflowRoot, "audit", "executions"));
+  const audit = parseYaml(await readFile(join(workflowRoot, "audit", "executions", files[0]), "utf8"));
+  assert.equal(audit.steps[0].skill_provenance.source_path, "../outside/SKILL.md");
+  assert.equal(audit.steps[0].skill_provenance.provenance_captured, false);
+  assert.equal(audit.steps[0].skill_provenance.content_hash, null);
+  assert.equal(audit.steps[0].skill_provenance.provenance_error, "source_path_outside_project");
+});
+
+test("loadAuditSummary aggregates decision audits and states runtime limitations", async () => {
+  const { workflowRoot } = await orchestrationFixture({ status: "implemented" });
+  await runOrchestration(workflowRoot, "REQ-0002", { confirm: true });
+  await runOrchestration(workflowRoot, "REQ-0002", { confirm: false });
+
+  const summary = await loadAuditSummary(workflowRoot, "REQ-0002");
+
+  assert.equal(summary.reqId, "REQ-0002");
+  assert.equal(summary.audit_scope, "workflow_decision");
+  assert.equal(summary.agent_execution.captured, false);
+  assert.equal(summary.executions.length, 2);
+  assert.equal(summary.totals.executions, 2);
+  assert.equal(summary.totals.steps, 2);
+  assert.equal(summary.skill_invocations["workflow-check"], 2);
+  assert.ok(summary.totals.workflow_decision_duration_ms >= 0);
+  assert.ok(summary.limitations.includes("agent_runtime_not_invoked"));
+  assert.ok(summary.limitations.includes("token_usage_not_captured"));
+  assert.ok(summary.limitations.includes("cost_not_estimated"));
+  assert.equal(summary.executions[0].steps[0].skill, "workflow-check");
+  assert.equal(summary.executions[0].steps[0].skill_source_path, ".codex/skills/workflow-check/SKILL.md");
+  assert.match(summary.executions[0].steps[0].skill_content_hash, /^sha256:[a-f0-9]{64}$/);
+});
+
+test("formatAuditSummary prints a human-readable summary with explicit limitations", () => {
+  const output = formatAuditSummary({
+    reqId: "REQ-0002",
+    audit_scope: "workflow_decision",
+    agent_execution: { captured: false },
+    totals: {
+      executions: 1,
+      steps: 1,
+      approved_steps: 1,
+      completed_steps: 0,
+      paused_steps: 0,
+      workflow_decision_duration_ms: 3,
+    },
+    skill_invocations: { "workflow-check": 1 },
+    executions: [
+      {
+        execution_id: "exec-test",
+        status: "approved",
+        started_at: "2026-06-21T10:00:00.000Z",
+        completed_at: "2026-06-21T10:00:00.003Z",
+        workflow_decision_duration_ms: 3,
+        steps: [
+          {
+            step: 1,
+            skill: "workflow-check",
+            status: "approved",
+            human_confirmed: true,
+            auto_executed: false,
+            workflow_decision_duration_ms: 3,
+            skill_source_path: ".codex/skills/workflow-check/SKILL.md",
+            skill_content_hash: "sha256:abc",
+          },
+        ],
+      },
+    ],
+    limitations: [
+      "agent_runtime_not_invoked",
+      "token_usage_not_captured",
+      "cost_not_estimated",
+      "tool_calls_not_captured",
+    ],
+  });
+
+  assert.ok(output.includes("Audit summary for REQ-0002"));
+  assert.ok(output.includes("Audit scope: workflow_decision"));
+  assert.ok(output.includes("Agent runtime: not captured"));
+  assert.ok(output.includes("Token usage: not captured"));
+  assert.ok(output.includes("workflow-check: 1"));
+  assert.ok(output.includes("sha256:abc"));
 });
 
 test("runOrchestration throws when requirement does not exist", async () => {

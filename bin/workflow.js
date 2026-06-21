@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util';
 
 import { inspect, install, uninstall } from '../lib/installer.js';
 import { assertStatus, syncCurrent, syncIndex, validateWorkflow } from '../lib/validator.js';
-import { runOrchestration } from '../lib/orchestrator.js';
+import { formatAuditSummary, loadAuditSummary, runOrchestration } from '../lib/orchestrator.js';
 
 const HELP = `Usage: workflow-template [options]
 
@@ -18,6 +18,7 @@ Install and operate the workflow template in the current directory.
   --sync-current [id]    Synchronize current context; optionally select REQ-xxxx
   --assert-status [id]   Assert a requirement is in an allowed status
   --orchestrate <id>     Run orchestration for a requirement
+  --audit-summary <id>   Summarize workflow decision audit logs for a requirement
   --confirm              Confirm human approval for --orchestrate
   --status <status>      Allowed status for --assert-status (repeatable)
   --format <format>      Output human or json (default: human)
@@ -40,6 +41,10 @@ function parse(argv) {
       normalizedArgs.push(`--orchestrate-id=${argv[index + 1]}`);
       index += 1;
     }
+    if (argv[index] === '--audit-summary' && argv[index + 1] && !argv[index + 1].startsWith('--')) {
+      normalizedArgs.push(`--audit-summary-id=${argv[index + 1]}`);
+      index += 1;
+    }
   }
   const { values, positionals } = parseArgs({
     args: normalizedArgs,
@@ -57,6 +62,8 @@ function parse(argv) {
       'assert-status-id': { type: 'string' },
       orchestrate: { type: 'boolean' },
       'orchestrate-id': { type: 'string' },
+      'audit-summary': { type: 'boolean' },
+      'audit-summary-id': { type: 'string' },
       confirm: { type: 'boolean' },
       status: { type: 'string', multiple: true },
       uninstall: { type: 'boolean' },
@@ -69,7 +76,7 @@ function parse(argv) {
   if (positionals.length > 0) throw new Error(`Unexpected argument: ${positionals[0]}`);
   if (!['codex', 'claude', 'all'].includes(values.target)) throw new Error('--target must be codex, claude, or all');
   if (!['human', 'json'].includes(values.format)) throw new Error('--format must be human or json');
-  const commands = ['check', 'validate', 'sync-index', 'sync-current', 'assert-status', 'orchestrate', 'uninstall'].filter((key) => values[key] !== undefined && values[key] !== false);
+  const commands = ['check', 'validate', 'sync-index', 'sync-current', 'assert-status', 'orchestrate', 'audit-summary', 'uninstall'].filter((key) => values[key] !== undefined && values[key] !== false);
   if (commands.length > 1) throw new Error('Only one operation command may be used at a time');
   if (commands.length > 0 && (values['skills-only'] || values['init-only'])) throw new Error('Operation commands cannot be combined with install mode options');
   return { ...values, command: commands[0] };
@@ -114,6 +121,10 @@ try {
       const action = result.status === 'approved' ? 'approved for execution' : 'executed';
       print(`Orchestration ${result.status} for ${options['orchestrate-id']}: Skill ${skill} ${action}.`, options.format);
     }
+  } else if (options.command === 'audit-summary') {
+    if (!options['audit-summary-id']) throw new Error('--audit-summary requires a REQ-xxxx argument');
+    const summary = await loadAuditSummary(`${process.cwd()}/.workflow`, options['audit-summary-id']);
+    print(options.format === 'json' ? summary : formatAuditSummary(summary), options.format);
   } else if (options.command === 'check') {
     const report = await inspect({ target: process.cwd(), targetPlatform: options.target });
     print(report, 'json');
