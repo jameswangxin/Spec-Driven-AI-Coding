@@ -121,9 +121,8 @@ test/installer.test.js    安装器和 CLI 测试
 ## 开发与验证
 
 ```bash
+npm run check
 npm test
-node --check bin/workflow.js
-node --check lib/installer.js
 ```
 
 测试覆盖安装、默认保留、显式覆盖、不同安装模式、只读检查、安全卸载、主目录和符号链接保护，以及 CLI 参数行为。

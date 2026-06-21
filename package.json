@@ -8,6 +8,7 @@
     "workflow-template": "bin/workflow.js"
   },
   "scripts": {
+    "check": "node --check bin/workflow.js && node --check lib/installer.js && node --check lib/orchestrator.js && node --check lib/validator.js",
     "test": "node --test"
   },
   "dependencies": {
