@@ -26,20 +26,9 @@ import {
 // Fixtures
 
 const skillRegistryYaml = `skills:
-  - id: workflow-brainstorm
-    name: Workflow Brainstorm
-    description: Explore and clarify a new idea before it becomes a formal requirement
-    side_effects:
-      - writes_file
-    safety_level: write-workflow-only
-    triggers:
-      - intent: brainstorm
-        keywords: ["探索", "头脑风暴", "想法"]
-        file_patterns: []
-
   - id: workflow-new
     name: Workflow New
-    description: Create a new requirement work item
+    description: Create a new requirement work item, clarifying ambiguous requests first if needed
     side_effects:
       - writes_file
     safety_level: write-workflow-only
@@ -47,6 +36,9 @@ const skillRegistryYaml = `skills:
       - intent: new
         keywords: ["新建", "需求"]
         file_patterns: ["requirements/REQ-*.md"]
+      - intent: brainstorm
+        keywords: ["探索", "头脑风暴", "想法"]
+        file_patterns: []
 
   - id: workflow-confirm
     name: Workflow Confirm
@@ -242,8 +234,8 @@ async function orchestrationFixture(options = {}) {
 test("loadSkillRegistry reads and parses skill registry", async () => {
   const root = await orchestrationFixture();
   const registry = await loadSkillRegistry(root);
-  assert.equal(registry.skills.length, 7);
-  assert.equal(registry.skills[0].id, "workflow-brainstorm");
+  assert.equal(registry.skills.length, 6);
+  assert.equal(registry.skills[0].id, "workflow-new");
   assert.deepEqual(registry.skills[0].side_effects, ["writes_file"]);
   assert.equal(registry.skills[1].safety_level, "write-workflow-only");
 });
