@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This directory is the source of truth for requirements, plans, implementation records, capability specs, Agent context, and external Skill integrations.
+This directory is the governance entry point for workflow state, validation, templates, Agent context, and external Skill integrations.
 
-本目录是目标项目的工作流真源。初始化后，请从 `REQ-0001` 开始记录目标项目自己的需求，不要复制模板仓库的历史需求。
+业务文档真源位于 `docs/changes/` 和 `docs/specs/`；`.workflow/` 只维护治理、索引和当前入口。
 
 长期入口见：
 
@@ -14,9 +14,9 @@ This directory is the source of truth for requirements, plans, implementation re
 ## Active Work
 
 <!-- workflow:active-work:start -->
-| ID | Title | Status | Plan | Implementation | Capabilities |
-| --- | --- | --- | --- | --- | --- |
-| REQ-0001 | Skills 仅依赖 Markdown 提示，缺少可执行约束 | verified | yes | yes | — |
+| ID | Title | Status | Change | Design | Tasks | Verification |
+| --- | --- | --- | --- | --- | --- | --- |
+| REQ-0001 | Reorganize workflow documents into docs/changes | planned | [proposal](../docs/changes/REQ-0001-workflow-docs-reorganization/proposal.md) | [design](../docs/changes/REQ-0001-workflow-docs-reorganization/design.md) | [tasks](../docs/changes/REQ-0001-workflow-docs-reorganization/tasks.md) | — |
 <!-- workflow:active-work:end -->
 
 ## Requirement Status Flow
@@ -38,42 +38,43 @@ reopened -> planned|implemented|verified
 draft|accepted|planned -> superseded
 ```
 
-All extended state transitions must be recorded in requirement `history`.
+All extended state transitions must be recorded in proposal `history`.
 
 ## Planning Rule
 
-A requirement needs a plan when `complexity` is `medium` or `complex`, or when `risk_tags` includes `data`, `security`, `migration`, `external-api`, `architecture`, or `cross-module`.
+A requirement needs `design.md` and `tasks.md` when `complexity` is `medium` or `complex`, or when `risk_tags` includes `data`, `security`, `migration`, `external-api`, `architecture`, or `cross-module`.
 
-Simple low-risk requirements may skip a plan only when the requirement records `plan_required: false` and explains the reason.
+Simple low-risk requirements may skip design only when the proposal records `plan_required: false` and explains the reason.
 
-## Capability Specs
+## Effective Specs
 
-<!-- workflow:capabilities:start -->
-| ID | Title | Status | Introduced By |
-| --- | --- | --- | --- |
-<!-- workflow:capabilities:end -->
+<!-- workflow:specs:start -->
+| Domain | Spec |
+| --- | --- |
+<!-- workflow:specs:end -->
 
 ## Templates
 
-| Template                                         | Purpose              |
-| ------------------------------------------------ | -------------------- |
-| [requirement.md](templates/requirement.md)       | 中文企业级需求工作单 |
-| [plan.md](templates/plan.md)                     | 中文技术方案         |
-| [implementation.md](templates/implementation.md) | 中文实施记录         |
-| [capability.md](templates/capability.md)         | 中文能力规格         |
+| Template | Purpose |
+| --- | --- |
+| [proposal.md](templates/proposal.md) | 变更提案 |
+| [design.md](templates/design.md) | 技术设计 |
+| [tasks.md](templates/tasks.md) | 实施任务 |
+| [implementation.md](templates/implementation.md) | 实施记录 |
+| [verification.md](templates/verification.md) | 验证记录 |
+| [spec.md](templates/spec.md) | 领域规范 |
 
 ## External Skill Integrations
 
-| Integration                                   | Purpose                                  |
-| --------------------------------------------- | ---------------------------------------- |
+| Integration | Purpose |
+| --- | --- |
 | [superpowers.md](integrations/superpowers.md) | Superpowers Skill 的本项目产出物映射规则 |
-| [trellis.md](integrations/trellis.md)         | Trellis 归档需求 Skill 的本项目适配规则  |
+| [trellis.md](integrations/trellis.md) | Trellis 归档需求 Skill 的本项目适配规则 |
 
 ## Governance
 
-| File                                                      | Purpose                        |
-| --------------------------------------------------------- | ------------------------------ |
-| [workflow-checklist.md](checks/workflow-checklist.md)     | 工作流一致性检查清单           |
-| [requirement.schema.json](schema/requirement.schema.json) | Requirement frontmatter schema |
-| [capability.schema.json](schema/capability.schema.json)   | Capability frontmatter schema  |
-| [git.md](git.md)                                          | Git / PR 最小集成约定          |
+| File | Purpose |
+| --- | --- |
+| [workflow-checklist.md](checks/workflow-checklist.md) | 工作流一致性检查清单 |
+| [requirement.schema.json](schema/requirement.schema.json) | Proposal frontmatter schema |
+| [git.md](git.md) | Git / PR 最小集成约定 |

@@ -5,11 +5,11 @@
 本文件是默认入口，适合单需求工作或当前主线工作。多个需求并行时，不要反复覆盖本文件，应使用 `.workflow/active/REQ-xxxx.md`。
 
 <!-- workflow:current:start -->
-当前需求：[REQ-0001](requirements/REQ-0001.md)
+当前需求：[REQ-0001](../docs/changes/REQ-0001-workflow-docs-reorganization/proposal.md)
 
-[Plan](plans/REQ-0001-plan.md)
+[Design](../docs/changes/REQ-0001-workflow-docs-reorganization/design.md)
 
-[Implementation](implementations/REQ-0001-implementation.md)
+[Tasks](../docs/changes/REQ-0001-workflow-docs-reorganization/tasks.md)
 <!-- workflow:current:end -->
 
 并行工作时，创建：
@@ -27,36 +27,33 @@
 3. `.workflow/playbook.md`
 4. `.workflow/index.md`
 5. 并行工作时的 `.workflow/active/REQ-xxxx.md`
-6. 当前 `REQ-*` 需求文件
-7. 当前 `REQ-*` 技术方案（如果存在）
-8. 当前 `REQ-*` 实施记录（如果存在）
-9. 需求引用的 `CAP-*` 能力规格
-10. `.workflow/git.md`
-11. 涉及外部 Skill 时，读取 `.workflow/integrations/` 下的对应适配规则
+6. 当前 `docs/changes/REQ-xxxx-title/proposal.md`
+7. 当前 `design.md`、`tasks.md`、`implementation.md`、`verification.md`（如果存在）
+8. 当前变更包下的 `specs/` 增量规范
+9. `.workflow/git.md`
+10. 涉及外部 Skill 时，读取 `.workflow/integrations/` 下的对应适配规则
 
 ## Allowed Scope
 
-- 使用 `.workflow/` 记录目标项目自己的需求、方案、实施和验证。
+- 使用 `.workflow/` 记录治理、索引、入口和验证规则。
+- 使用 `docs/changes/` 记录目标项目自己的变更包。
+- 使用 `docs/specs/` 记录当前生效的领域规范。
 - 使用 templates 创建新文件。
-- 使用 integrations 约束外部 Skill 产出物落点。
 - 多需求并行时，使用 active 入口隔离上下文。
-- 使用 Git / PR 约定保持代码和需求可追溯。
 
 ## Out of Scope
 
-- 复制模板仓库根 `.workflow/` 的历史需求。
+- 把业务需求正文写回旧的 .workflow 业务目录。
 - 把示例实例当作目标项目真源。
 - 修改全局 Superpowers 或 Trellis Skill。
 
 ## Known Risks
 
-- 如果误复制模板仓库根 `.workflow/`，目标项目会继承无关历史需求。
-- 如果跳过需求确认，中高复杂度需求容易扩大范围。
-- 外部 Skill 默认路径可能与 `.workflow/` 冲突，需按 integrations 规则处理。
 - 如果多个需求并行但共用 current，Agent 可能读取错误上下文。
+- 如果 `.workflow/` 和 `docs/changes/` 信息不同步，状态判断会失真。
 
 ## Required Verification
 
-- 确认当前 `REQ-*`、plan、implementation 链接存在。
-- 确认测试或替代验证已写入 implementation。
+- 确认当前 proposal、design、tasks、implementation、verification 链接存在。
+- 确认测试或替代验证已写入 verification。
 - 完成前运行必要验证命令，并记录结果。

@@ -49,7 +49,7 @@
 
 ## Out of Scope
 
-- 把业务需求正文写回 `.workflow/requirements/`、`plans/` 或 `implementations/`。
+- 把业务需求正文写回旧的 .workflow 业务目录。
 - 把示例实例当作目标项目真源。
 - 修改全局 Superpowers 或 Trellis Skill。
 

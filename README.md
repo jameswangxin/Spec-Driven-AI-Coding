@@ -1,6 +1,6 @@
 # AI Coding Workflow Toolkit
 
-面向 Codex 和 Claude Code 的规格驱动开发工具包。它提供 CLI、项目级 Skills 和 `.workflow/` 模板，把需求、方案、实施记录与验证证据保存在目标仓库中。
+面向 Codex 和 Claude Code 的规格驱动开发工具包。它提供 CLI、项目级 Skills 和模板，把工作流治理放在 `.workflow/`，把业务文档放在 `docs/changes/` 与 `docs/specs/`。
 
 npm 包：`@marsx/ai-coding-workflow-toolkit`
 
@@ -19,11 +19,17 @@ npx workflow-template
 npx @marsx/ai-coding-workflow-toolkit
 ```
 
-默认安装只补齐缺失的受管文件，不会覆盖已有需求、方案或实施记录。
+默认安装只补齐缺失的受管文件，不会覆盖已有变更包或规范。
 
-## 工作流
+## 文档结构
 
-`.workflow/` 是项目真源，主状态流为：
+```text
+.workflow/        工作流治理、模板、索引、当前入口、Skill 集成
+docs/changes/    每个 REQ 的 proposal/design/tasks/implementation/verification
+docs/specs/      已生效的领域行为规范
+```
+
+主状态流为：
 
 ```text
 draft -> accepted -> planned -> implemented -> verified -> archived
@@ -40,7 +46,7 @@ draft -> accepted -> planned -> implemented -> verified -> archived
 /workflow-archive REQ-0001
 ```
 
-中高复杂度、跨模块、数据、安全、迁移和外部接口相关的需求必须先有方案。`blocked`、`canceled`、`reopened` 和 `superseded` 等扩展状态也必须记录在需求的 `history` 中。
+中高复杂度、跨模块、数据、安全、迁移和外部接口相关的需求必须先有 `design.md` 和 `tasks.md`。扩展状态也必须记录在 proposal 的 `history` 中。
 
 ## 常用命令
 
@@ -48,7 +54,7 @@ draft -> accepted -> planned -> implemented -> verified -> archived
 # 检查安装状态
 npx workflow-template --check
 
-# 校验 .workflow 的 schema、状态流、计划、实施记录和引用
+# 校验 docs/changes 的变更包、状态流、阶段产物和引用
 npx workflow-template --validate
 
 # 同步索引与当前工作入口

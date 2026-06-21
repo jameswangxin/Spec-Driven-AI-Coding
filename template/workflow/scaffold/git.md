@@ -2,7 +2,7 @@
 
 ## 目标
 
-让代码变更、需求、方案、实施记录和验证结果可以互相追溯。本约定不绑定具体 Git 平台。
+让代码变更、变更包、规范和验证结果可以互相追溯。本约定不绑定具体 Git 平台。
 
 ## 分支命名
 
@@ -27,7 +27,7 @@ chore-req-0001-short-title
 ```text
 feat(req-0001): add export workflow
 fix(req-0001): handle empty export result
-docs(req-0001): update implementation record
+docs(req-0001): update verification record
 test(req-0001): cover export validation
 ```
 
@@ -35,27 +35,28 @@ test(req-0001): cover export validation
 
 - commit message 必须包含 `req-0001` 这类需求编号。
 - 同一 commit 不应混入无关需求。
-- 修改需求、方案或实施记录时，也要引用对应 `REQ-*`。
+- 修改变更包或规范时，也要引用对应 `REQ-*`。
 
 ## PR 描述
 
 PR 描述至少包含：
 
 ```markdown
-## Requirement
+## Change Package
 
-- `.workflow/requirements/REQ-0001.md`
+- `docs/changes/REQ-0001-short-title/proposal.md`
 
-## Plan
+## Design
 
-- `.workflow/plans/REQ-0001-plan.md`
+- `docs/changes/REQ-0001-short-title/design.md`
 
 ## Implementation
 
-- `.workflow/implementations/REQ-0001-implementation.md`
+- `docs/changes/REQ-0001-short-title/implementation.md`
 
 ## Verification
 
+- `docs/changes/REQ-0001-short-title/verification.md`
 - `command`: result
 
 ## Risk
@@ -65,38 +66,30 @@ PR 描述至少包含：
 
 要求：
 
-- PR 必须链接 requirement。
-- 如果 `plan_required: true`，PR 必须链接 plan。
-- PR 必须链接 implementation。
-- CI 或本地验证结果必须写入 implementation，不只写在 PR 描述里。
+- PR 必须链接 proposal。
+- 如果 `plan_required: true`，PR 必须链接 design 和 tasks。
+- PR 必须链接 implementation 和 verification。
+- CI 或本地验证结果必须写入 verification，不只写在 PR 描述里。
 
 ## CI / 本地验证
 
 验证结果落点：
 
 ```text
-.workflow/implementations/REQ-0001-implementation.md
-```
-
-记录格式：
-
-```markdown
-| 命令 / 验证方式 | 结果 | 备注 |
-| --- | --- | --- |
-| `npm test` | 通过 | 120 passed |
+docs/changes/REQ-0001-short-title/verification.md
 ```
 
 如果 CI 失败：
 
 - 不得将需求状态更新为 `verified`。
-- 在 implementation 中记录失败命令、失败原因和后续处理。
+- 在 verification 中记录失败命令、失败原因和后续处理。
 - 必要时将需求状态更新为 `blocked` 或 `reopened`。
 
 ## 合并后
 
 合并后检查：
 
-- [ ] implementation 已记录最终测试结果。
+- [ ] verification 已记录最终测试结果。
 - [ ] index 中需求状态已更新。
 - [ ] current 或 active 入口已清理或指向下一项工作。
-- [ ] 如产生可复用能力，已创建或更新 `CAP-*`。
+- [ ] 如产生长期行为变化，已更新 `docs/specs/`。

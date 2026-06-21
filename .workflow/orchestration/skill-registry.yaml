@@ -1,43 +1,46 @@
 skills:
   - id: workflow-new
     name: Workflow New
-    description: Create a new requirement work item, clarifying ambiguous requests first if needed
+    description: Create a new change package, clarifying ambiguous requests first if needed
     side_effects:
       - writes_file
     safety_level: write-workflow-only
     triggers:
       - intent: new
         keywords: ["新建", "需求"]
-        file_patterns: ["requirements/REQ-*.md"]
+        file_patterns: ["docs/changes/REQ-*/proposal.md"]
       - intent: brainstorm
         keywords: ["探索", "头脑风暴", "想法"]
         file_patterns: []
 
   - id: workflow-confirm
     name: Workflow Confirm
-    description: Confirm a draft requirement before planning
+    description: Confirm a draft proposal before design
     side_effects:
       - writes_file
     safety_level: write-workflow-only
     triggers:
       - intent: confirm
         keywords: ["确认", "澄清"]
-        file_patterns: ["requirements/REQ-*.md"]
+        file_patterns: ["docs/changes/REQ-*/proposal.md"]
 
   - id: workflow-plan
     name: Workflow Plan
-    description: Create a technical plan for an accepted requirement
+    description: Create design and tasks for an accepted proposal
     side_effects:
       - writes_file
     safety_level: write-workflow-only
     triggers:
       - intent: plan
         keywords: ["规划", "方案"]
-        file_patterns: ["requirements/REQ-*.md", "plans/REQ-*-plan.md"]
+        file_patterns:
+          - "docs/changes/REQ-*/proposal.md"
+          - "docs/changes/REQ-*/design.md"
+          - "docs/changes/REQ-*/tasks.md"
 
   - id: workflow-exec
     name: Workflow Execute
-    description: Execute a planned requirement
+    description: Execute a planned proposal
     side_effects:
       - writes_file
       - git_commit
@@ -46,26 +49,29 @@ skills:
       - intent: execute
         keywords: ["实施", "执行"]
         file_patterns:
-          ["plans/REQ-*-plan.md", "implementations/REQ-*-implementation.md"]
+          - "docs/changes/REQ-*/tasks.md"
+          - "docs/changes/REQ-*/implementation.md"
 
   - id: workflow-check
     name: Workflow Check
-    description: Verify an implemented requirement
+    description: Verify an implemented proposal
     side_effects:
       - writes_file
     safety_level: write-workflow-only
     triggers:
       - intent: check
         keywords: ["验证", "检查"]
-        file_patterns: ["implementations/REQ-*-implementation.md"]
+        file_patterns: ["docs/changes/REQ-*/verification.md"]
 
   - id: workflow-archive
     name: Workflow Archive
-    description: Archive a verified requirement
+    description: Archive a verified proposal
     side_effects:
       - writes_file
     safety_level: write-workflow-only
     triggers:
       - intent: archive
         keywords: ["归档", "关闭"]
-        file_patterns: ["requirements/REQ-*.md"]
+        file_patterns:
+          - "docs/changes/REQ-*"
+          - "docs/changes/archive/*-REQ-*"

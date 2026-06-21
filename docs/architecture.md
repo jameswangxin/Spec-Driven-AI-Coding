@@ -2,22 +2,24 @@
 
 ## 设计目标
 
-本仓库是工作流模板源，不是某个业务项目的 `.workflow/` 实例。模板源码需要清楚区分不同职责，避免后续维护者把运行时骨架、文档模板、治理规则和外部集成混在一起。
+本仓库是工作流模板源，不是某个业务项目的实例。模板源码需要清楚区分治理骨架、业务文档骨架、文档模板、校验规则和外部集成。
 
 ## 目录分层
 
 ```text
 template/
   workflow/
-    scaffold/
-    document-templates/
-    governance/
-    integrations/
+    scaffold/             目标项目 .workflow 治理骨架
+    document-templates/   变更包和领域规范模板
+    governance/           schema 和检查清单
+    integrations/         外部 Skill 适配规则
+  docs/
+    scaffold/             目标项目 docs 骨架
 ```
 
-## `scaffold/`
+## `workflow/scaffold/`
 
-目标项目 `.workflow/` 的运行骨架。
+目标项目 `.workflow/` 的治理骨架。
 
 内容包括：
 
@@ -28,25 +30,23 @@ project.md
 playbook.md
 git.md
 active/
-requirements/
-plans/
-implementations/
-capabilities/
 ```
 
-这些文件复制后直接成为目标项目 `.workflow/` 的基础结构。
+这些文件复制后成为目标项目的工作流入口和治理说明，不保存业务需求正文。
 
-## `document-templates/`
+## `workflow/document-templates/`
 
-创建工作流记录时使用的文档模板。
+创建变更包和规范时使用的模板。
 
 内容包括：
 
 ```text
-requirement.md
-plan.md
+proposal.md
+design.md
+tasks.md
 implementation.md
-capability.md
+verification.md
+spec.md
 ```
 
 复制后进入目标项目：
@@ -55,9 +55,23 @@ capability.md
 .workflow/templates/
 ```
 
-## `governance/`
+## `docs/scaffold/`
 
-企业化治理和校验规则。
+目标项目业务文档骨架。
+
+内容包括：
+
+```text
+changes/
+  archive/
+specs/
+```
+
+`docs/changes/` 保存每个 `REQ-xxxx-title` 的完整变更包；`docs/specs/` 保存当前生效的领域行为规范。
+
+## `workflow/governance/`
+
+治理和校验规则。
 
 内容包括：
 
@@ -73,7 +87,7 @@ schema/
 .workflow/schema/
 ```
 
-## `integrations/`
+## `workflow/integrations/`
 
 外部 Skill 和工具的适配规则。
 
