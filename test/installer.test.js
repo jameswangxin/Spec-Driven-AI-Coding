@@ -50,12 +50,27 @@ async function assertWorkflowSkills(target, expected) {
   }
 }
 
-test('full install creates the project workflow file and reports workflowInstalled', async () => {
+async function assertDocsScaffold(target, expected) {
+  for (const directory of [
+    ['docs', 'changes'],
+    ['docs', 'changes', 'archive'],
+    ['docs', 'specs'],
+  ]) {
+    assert.equal(
+      await exists(join(target, ...directory)),
+      expected,
+      `expected ${directory.join('/')} to ${expected ? 'exist' : 'be absent'}`,
+    );
+  }
+}
+
+test('full install creates the project workflow file and docs scaffold', async () => {
   await withTarget(async (target) => {
     const result = await install({ target });
 
     assert.equal(result.workflowInstalled, true);
     assert.equal(await exists(join(target, '.workflow', 'project.md')), true);
+    await assertDocsScaffold(target, true);
     await assertWorkflowSkills(target, true);
   });
 });
@@ -117,12 +132,13 @@ test('Claude target installs only project Claude skills', async () => {
   });
 });
 
-test('initOnly installs the workflow without installing managed skills', async () => {
+test('initOnly installs the workflow and docs scaffold without managed skills', async () => {
   await withTarget(async (target) => {
     const result = await install({ target, initOnly: true });
 
     assert.equal(result.workflowInstalled, true);
     assert.equal(await exists(join(target, '.workflow', 'project.md')), true);
+    await assertDocsScaffold(target, true);
     await assertWorkflowSkills(target, false);
   });
 });
@@ -139,6 +155,9 @@ test('inspect does not write and reports missing managed files', async () => {
     await assertWorkflowSkills(target, false);
     assert.deepEqual(await readdir(target), entriesBefore);
     assert.ok(report.missing.includes('.workflow/project.md'));
+    assert.ok(report.missing.includes('docs/changes'));
+    assert.ok(report.missing.includes('docs/changes/archive'));
+    assert.ok(report.missing.includes('docs/specs'));
   });
 });
 
@@ -208,6 +227,34 @@ test('install rejects workflow and skills output symlinks', async () => {
     await symlink(outside, join(target, '.codex', 'skills'));
     await assert.rejects(install({ target, skillsOnly: true }), /symbolic link/i);
     assert.equal(await exists(join(outside, 'project.md')), false);
+  });
+});
+
+test('install rejects a docs output symlink', async () => {
+  await withTarget(async (target) => {
+    const outside = join(target, 'outside');
+    await mkdir(outside);
+    await symlink(outside, join(target, 'docs'));
+
+    await assert.rejects(install({ target, initOnly: true }), /symbolic link/i);
+    assert.equal(await exists(join(outside, 'changes')), false);
+  });
+});
+
+test('uninstall removes empty docs scaffold but preserves requirement change records', async () => {
+  await withTarget(async (target) => {
+    const requirement = join(target, 'docs', 'changes', 'REQ-0001', 'proposal.md');
+    await install({ target, initOnly: true });
+    await assertDocsScaffold(target, true);
+    await mkdir(join(target, 'docs', 'changes', 'REQ-0001'), { recursive: true });
+    await writeFile(requirement, '# Proposal\n');
+
+    await uninstall({ target, initOnly: true });
+
+    assert.equal(await exists(requirement), true);
+    assert.equal(await exists(join(target, 'docs', 'changes')), true);
+    assert.equal(await exists(join(target, 'docs', 'changes', 'archive')), false);
+    assert.equal(await exists(join(target, 'docs', 'specs')), false);
   });
 });
 
