@@ -50,6 +50,30 @@ node /path/to/spec-driven-ai-coding/bin/workflow.js --uninstall --yes
 
 安装器拒绝在用户主目录运行，也会拒绝 `.workflow`、`docs`、`.codex` 或 `.codex/skills` 为符号链接的目标，避免把文件写到项目外。
 
+## 从 GitHub Packages 安装
+
+包发布在 GitHub Packages npm registry：
+
+```bash
+printf "@jameswangxin:registry=https://npm.pkg.github.com\\n//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN\\n" >> ~/.npmrc
+npm install -D @jameswangxin/ai-coding-workflow-toolkit --registry=https://npm.pkg.github.com
+npx workflow-template
+```
+
+也可以直接运行：
+
+```bash
+npx --registry=https://npm.pkg.github.com @jameswangxin/ai-coding-workflow-toolkit
+```
+
+发布流程由 `.github/workflows/publish-github-packages.yml` 管理。推送 `v*` tag 后，GitHub Actions 会运行检查并执行 `npm publish`，使用仓库的 `GITHUB_TOKEN` 写入 GitHub Packages：
+
+```bash
+npm version patch
+git push origin main
+git push origin v0.1.1
+```
+
 ## Codex Skills
 
 | Skill | 用途 | 主要落点 |

@@ -2,21 +2,22 @@
 
 面向 Codex 和 Claude Code 的规格驱动开发工具包。它提供 CLI、项目级 Skills 和模板，把工作流治理放在 `.workflow/`，把业务文档放在 `docs/changes/` 与 `docs/specs/`。
 
-npm 包：`@marsx/ai-coding-workflow-toolkit`
+GitHub Packages npm 包：`@jameswangxin/ai-coding-workflow-toolkit`
 
 ## 安装
 
 需要 Node.js 20 或更高版本。在目标项目根目录执行：
 
 ```bash
-npm install -D @marsx/ai-coding-workflow-toolkit
+printf "@jameswangxin:registry=https://npm.pkg.github.com\\n//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN\\n" >> ~/.npmrc
+npm install -D @jameswangxin/ai-coding-workflow-toolkit --registry=https://npm.pkg.github.com
 npx workflow-template
 ```
 
 发布后也可直接运行：
 
 ```bash
-npx @marsx/ai-coding-workflow-toolkit
+npx --registry=https://npm.pkg.github.com @jameswangxin/ai-coding-workflow-toolkit
 ```
 
 默认安装只补齐缺失的受管文件，不会覆盖已有变更包或规范。
@@ -87,6 +88,18 @@ npm run pack:check
 ```
 
 GitHub Actions 会在 `main` 推送和 Pull Request 上运行相同的检查。发布内容只包含 `bin/`、`lib/`、`skills/` 和 `template/`；`prepublishOnly` 会在 `npm publish` 前再次运行语法检查和测试。
+
+## 发布到 GitHub Packages
+
+包通过 GitHub Packages 发布，发布名为 `@jameswangxin/ai-coding-workflow-toolkit`。推送版本 tag 会触发 `.github/workflows/publish-github-packages.yml`：
+
+```bash
+npm version patch
+git push origin main
+git push origin v0.1.1
+```
+
+本地安装需要具备 `read:packages` 权限的 GitHub token，并建议写入用户级 `~/.npmrc`，不要提交到仓库。工作流会执行 `npm ci`、`npm run check`、`npm test`，然后使用 `GITHUB_TOKEN` 发布到 `https://npm.pkg.github.com`。发布失败时先确认仓库 Settings → Actions → General 中 Workflow permissions 允许写入 packages。
 
 更多目录说明见 [使用说明](docs/usage.md) 和 [架构说明](docs/architecture.md)。
 
