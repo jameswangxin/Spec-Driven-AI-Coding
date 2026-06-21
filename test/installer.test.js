@@ -161,6 +161,27 @@ test('inspect does not write and reports missing managed files', async () => {
   });
 });
 
+test('inspect and check reject docs scaffold paths that are regular files', async () => {
+  await withTarget(async (target) => {
+    await install({ target, initOnly: true });
+    const archive = join(target, 'docs', 'changes', 'archive');
+    const specs = join(target, 'docs', 'specs');
+    await rm(archive, { recursive: true });
+    await rm(specs, { recursive: true });
+    await writeFile(archive, 'not a directory\n');
+    await writeFile(specs, 'not a directory\n');
+
+    const report = await inspect({ target });
+
+    assert.ok(report.missing.includes('docs/changes/archive'));
+    assert.ok(report.missing.includes('docs/specs'));
+    await assert.rejects(
+      execFile(process.execPath, [CLI, '--check'], { cwd: target }),
+      { code: 1 },
+    );
+  });
+});
+
 test('uninstall removes managed workflow contents but preserves custom skills and business files', async () => {
   await withTarget(async (target) => {
     const customSkill = join(target, '.codex', 'skills', 'custom', 'SKILL.md');
