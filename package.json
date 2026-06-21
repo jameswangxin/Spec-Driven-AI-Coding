@@ -1,5 +1,5 @@
 {
-  "name": "@marsx/ai-coding-workflow-toolkit",
+  "name": "@jameswangxin/ai-coding-workflow-toolkit",
   "version": "0.1.0",
   "description": "A spec-driven AI coding workflow toolkit with executable validation and project-local agent skills.",
   "type": "module",
@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/jameswangxin/Spec-Driven-AI-Coding#readme",
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
     "ajv": "^8.20.0",
